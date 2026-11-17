@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wiki</title>
+<style>
+:root{color-scheme:light dark;--bg:#fff;--fg:#172b4d;--mut:#626f86;--bd:#dcdfe4;--side:#f7f8f9;--hov:#e9f2ff;--pri:#0c66e4;--prif:#fff;--code:#f1f2f4;--err:#c9372c}
+@media(prefers-color-scheme:dark){:root{--bg:#1d2125;--fg:#c7d1db;--mut:#8c9bab;--bd:#38414a;--side:#161a1d;--hov:#1c2b41;--pri:#579dff;--prif:#101214;--code:#2c333a;--err:#f87168}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--fg);display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:var(--side);border:1px solid var(--bd);border-radius:4px;padding:5px 12px;cursor:pointer}
+button:hover{background:var(--hov)}
+button.pri{background:var(--pri);border-color:var(--pri);color:var(--prif);font-weight:600}
+button.danger{color:var(--err)}
+input,select,textarea{background:var(--bg);border:1px solid var(--bd);border-radius:4px;padding:6px 8px}
+:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
+header{display:flex;gap:10px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--bd)}
+header .logo{font-weight:700;font-size:17px;color:var(--pri);text-decoration:none;margin-right:6px}
+header input[type=search]{flex:1;max-width:420px}
+#menu{display:none}
+.wrap{flex:1;display:flex;min-height:0}
+.side{width:270px;flex:none;background:var(--side);border-right:1px solid var(--bd);padding:12px;overflow:auto}
+.side select{width:100%;margin-bottom:10px;font-weight:600}
+.side ul{list-style:none;margin:0;padding:0}
+.side ul ul{padding-left:14px;border-left:1px solid var(--bd);margin-left:6px}
+.side a{display:block;padding:3px 8px;border-radius:4px;color:var(--fg);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side a:hover{background:var(--hov)}
+.side a.act{background:var(--hov);color:var(--pri);font-weight:600}
+main{flex:1;overflow:auto;padding:28px 40px 60px}
+main>div{max-width:860px;margin:0 auto}
+.crumbs{font-size:13px;color:var(--mut);margin-bottom:6px}
+.crumbs a{color:var(--mut)}
+h1.t{font-size:30px;line-height:1.2;margin:4px 0 6px}
+.meta{color:var(--mut);font-size:13px;margin-bottom:14px}
+.acts{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.doc{overflow-wrap:anywhere}
+.doc h1,.doc h2,.doc h3{line-height:1.25;margin:1.5em 0 .5em}
+.doc a{color:var(--pri)}
+.doc img{max-width:100%}
+.doc code{background:var(--code);padding:1px 5px;border-radius:3px;font-size:.9em}
+.doc pre{background:var(--code);padding:12px;border-radius:4px;overflow:auto}
+.doc pre code{padding:0;background:none}
+.doc blockquote{margin:1em 0;padding:2px 14px;border-left:3px solid var(--pri);color:var(--mut)}
+.doc table{border-collapse:collapse;display:block;overflow:auto}
+.doc th,.doc td{border:1px solid var(--bd);padding:6px 10px}
+.doc th{background:var(--side)}
+.ed input#t{width:100%;font-size:26px;font-weight:700;border:0;border-bottom:1px solid var(--bd);border-radius:0;padding:4px 0;margin-bottom:12px}
+.row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.row label{display:flex;gap:6px;align-items:center;color:var(--mut);font-size:13px}
+.tb{display:flex;gap:4px;margin-bottom:6px}
+.tb button{padding:3px 10px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px}
+.split textarea{min-height:420px;resize:vertical;font:14px/1.5 ui-monospace,Consolas,monospace}
+.split .doc{border:1px solid var(--bd);border-radius:4px;padding:0 14px;min-height:420px;overflow:auto}
+.hit{padding:10px 0;border-bottom:1px solid var(--bd)}
+.hit a{font-weight:600;color:var(--pri);text-decoration:none}
+.hit p{margin:2px 0 0;color:var(--mut);font-size:14px}
+details{border:1px solid var(--bd);border-radius:4px;margin-bottom:8px;padding:8px 12px}
+summary{cursor:pointer;font-weight:600}
+dialog{border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg);width:min(440px,92vw)}
+dialog label{display:block;margin:10px 0 2px;font-size:13px;color:var(--mut)}
+dialog input{width:100%}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:4px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}#toast.err{background:var(--err);color:#fff}
+@media(max-width:800px){
+ #menu{display:block}
+ .side{display:none;position:fixed;top:49px;bottom:0;left:0;z-index:5;width:80vw}
+ .side.open{display:block}
+ main{padding:18px 16px 60px}.split{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<header>
+ <button id="menu" aria-label="Navigation">☰</button>
+ <a class="logo" href="#">Wiki</a>
+ <button class="pri" id="new">Erstellen</button>
+ <input type="search" id="q" placeholder="Suchen …" aria-label="Suchen">
+ <button id="cfg" aria-label="Einstellungen">Einstellungen</button>
+</header>
+<div class="wrap">
+ <nav class="side" id="side"><select id="space" aria-label="Bereich"></select><div id="tree"></div></nav>
+ <main><div id="main"></div></main>
+</div>
+<dialog id="dlg">
+ <form method="dialog">
+  <h3 style="margin-top:0">Verbindung</h3>
+  <label for="u">Web-App-URL (Apps Script)</label><input id="u" placeholder="https://script.google.com/macros/s/…/exec">
+  <label for="k">Passwort</label><input id="k" type="password">
+  <label for="n">Dein Name (für den Verlauf)</label><input id="n">
+  <div class="row" style="margin:16px 0 0;justify-content:flex-end"><button value="cancel">Abbrechen</button><button class="pri" id="ok" value="ok">Speichern</button></div>
+ </form>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const ls=(k,v)=>{try{return v===undefined?localStorage.getItem(k)||'':localStorage.setItem(k,v)}catch(e){return ''}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const md=s=>DOMPurify.sanitize(marked.parse(s||''));
+const fdate=t=>new Date(t).toLocaleString('de-CH',{dateStyle:'medium',timeStyle:'short'});
+let pages=[],space=ls('space'),cur=null;
+const byId=id=>pages.find(p=>p.id===id);
+
+function toast(m,err){const t=$('#toast');t.textContent=m;t.className='show'+(err?' err':'');clearTimeout(toast.h);toast.h=setTimeout(()=>t.className='',3500)}
+
+async function api(action,p={}){
+  const url=ls('url');
+  if(!url){$('#dlg').showModal();throw new Error('Bitte zuerst die Verbindung einrichten.')}
+  const r=await fetch(url,{method:'POST',body:JSON.stringify({action,token:ls('token'),...p})});
+  const j=await r.json();
+  if(!j.ok)throw new Error(j.error);
+  return j.data;
+}
+async function load(){
+  try{pages=await api('list')}catch(e){toast(e.message,1)}
+  route();
+}
+
+const spaces=()=>[...new Set(pages.map(p=>p.space))].sort();
+function descendants(id){const out=new Set([id]);let grow=true;while(grow){grow=false;pages.forEach(p=>{if(out.has(p.parentId)&&!out.has(p.id)){out.add(p.id);grow=true}})}return out}
+function crumbs(p){const a=[];let x=p;while(x&&a.length<20){a.unshift(x);x=byId(x.parentId)}return a}
+
+function side(){
+  const sp=spaces();
+  if(!sp.includes(space))space=sp[0]||'';
+  $('#space').innerHTML=sp.map(s=>`<option ${s===space?'selected':''}>${esc(s)}</option>`).join('');
+  const list=pages.filter(p=>p.space===space),ids=new Set(list.map(p=>p.id)),kids={};
+  list.forEach(p=>{const k=ids.has(p.parentId)?p.parentId:'';(kids[k]=kids[k]||[]).push(p)});
+  const ul=pid=>(kids[pid]||[]).sort((a,b)=>a.title.localeCompare(b.title)).map(p=>
+    `<li><a href="#p/${p.id}" class="${cur&&cur.id===p.id?'act':''}">${esc(p.title)}</a>${kids[p.id]?'<ul>'+ul(p.id)+'</ul>':''}</li>`).join('');
+  $('#tree').innerHTML='<ul>'+ul('')+'</ul>';
+}
+
+function route(){
+  $('#side').classList.remove('open');
+  const [k,...r]=location.hash.slice(1).split('/'),arg=decodeURIComponent(r.join('/'));
+  cur=null;
+  if(k==='p'&&byId(arg))view(byId(arg));
+  else if(k==='s')search(arg);
+  else home();
+  side();
+}
+
+function home(){
+  const rec=[...pages].sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,10);
+  $('#main').innerHTML=`<h1 class="t">Zuletzt aktualisiert</h1>`+(rec.length?rec.map(p=>
+    `<div class="hit"><a href="#p/${p.id}">${esc(p.title)}</a><p>${esc(p.space)} · ${fdate(p.updatedAt)} · ${esc(p.updatedBy)}</p></div>`).join('')
+    :`<p>Noch keine Seiten vorhanden. Richte die Verbindung ein und erstelle die erste Seite.</p>`);
+}
+
+function view(p){
+  cur=p;space=p.space;ls('space',space);
+  const cr=crumbs(p).slice(0,-1).map(x=>`<a href="#p/${x.id}">${esc(x.title)}</a>`);
+  $('#main').innerHTML=`<div class="crumbs">${esc(p.space)}${cr.length?' / '+cr.join(' / '):''}</div>
+   <h1 class="t">${esc(p.title)}</h1>
+   <div class="meta">Version ${p.version}, zuletzt bearbeitet von ${esc(p.updatedBy||'unbekannt')} am ${fdate(p.updatedAt)}</div>
+   <div class="acts"><button class="pri" id="e">Bearbeiten</button><button id="c">Unterseite erstellen</button><button id="h">Verlauf</button><button id="d" class="danger">Löschen</button></div>
+   <div class="doc">${md(p.content)}</div>`;
+  $('#e').onclick=()=>edit(p);
+  $('#c').onclick=()=>edit({id:'',space:p.space,parentId:p.id,title:'',content:''});
+  $('#h').onclick=()=>hist(p);
+  $('#d').onclick=async()=>{
+    if(!confirm(`Seite „${p.title}“ löschen? Unterseiten rücken eine Ebene nach oben.`))return;
+    try{await api('delete',{id:p.id});pages=await api('list');location.hash='';route();toast('Gelöscht')}catch(e){toast(e.message,1)}
+  };
+}
+
+function search(q){
+  $('#q').value=q;
+  const t=q.toLowerCase().trim();
+  const hits=t?pages.filter(p=>(p.title+' '+p.content).toLowerCase().includes(t)):[];
+  $('#main').innerHTML=`<h1 class="t">Suche: ${esc(q)}</h1>`+(hits.length?hits.map(p=>{
+    const i=p.content.toLowerCase().indexOf(t),snip=i<0?p.content.slice(0,140):p.content.slice(Math.max(0,i-50),i+100);
+    return `<div class="hit"><a href="#p/${p.id}">${esc(p.title)}</a><p>${esc(p.space)} – …${esc(snip.replace(/\s+/g,' '))}…</p></div>`}).join(''):'<p>Keine Treffer.</p>');
+}
+
+function edit(p){
+  const isNew=!p.id;
+  $('#main').innerHTML=`<div class="ed">
+   <input id="t" placeholder="Seitentitel" value="${esc(p.title)}" aria-label="Titel">
+   <div class="row">
+    <label>Bereich <input id="sp" list="spl" value="${esc(p.space||space||'Allgemein')}"></label><datalist id="spl">${spaces().map(s=>`<option value="${esc(s)}">`).join('')}</datalist>
+    <label>Übergeordnet <select id="par"></select></label>
+   </div>
+   <div class="tb">${[['b','Fett'],['i','Kursiv'],['h','Überschrift'],['l','Liste'],['c','Code'],['a','Link']].map(([k,n])=>`<button type="button" data-f="${k}">${n}</button>`).join('')}</div>
+   <div class="split"><textarea id="c" aria-label="Inhalt (Markdown)"></textarea><div class="doc" id="pv"></div></div>
+   <div class="row"><button class="pri" id="save">Speichern</button><button id="cancel">Abbrechen</button></div></div>`;
+  const ta=$('#c');ta.value=p.content;
+  const fillPar=()=>{
+    const ex=p.id?descendants(p.id):new Set(),s=$('#sp').value.trim();
+    $('#par').innerHTML='<option value="">(Oberste Ebene)</option>'+pages.filter(x=>x.space===s&&!ex.has(x.id)).map(x=>`<option value="${x.id}" ${x.id===p.parentId?'selected':''}>${esc(x.title)}</option>`).join('');
+  };
+  const pv=()=>$('#pv').innerHTML=md(ta.value);
+  fillPar();pv();
+  $('#sp').oninput=fillPar;ta.oninput=pv;
+  const fmt={b:['**','**'],i:['_','_'],h:['## ',''],l:['- ',''],c:['`','`'],a:['[',' ](https://)']};
+  document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{
+    const [x,y]=fmt[b.dataset.f],s=ta.selectionStart,e=ta.selectionEnd;
+    ta.setRangeText(x+ta.value.slice(s,e)+y,s,e,'end');ta.focus();pv();
+  });
+  $('#cancel').onclick=()=>isNew?history.back():view(p);
+  $('#save').onclick=async()=>{
+    const q={id:p.id,space:$('#sp').value.trim()||'Allgemein',parentId:$('#par').value,title:$('#t').value.trim(),content:ta.value};
+    if(!q.title)return toast('Bitte einen Titel eingeben.',1);
+    try{
+      const r=await api('save',{page:q,author:ls('name')||'Anonym'});
+      const i=pages.findIndex(x=>x.id===r.id);
+      i<0?pages.push(r):pages[i]=r;
+      location.hash='#p/'+r.id;route();toast('Gespeichert');
+    }catch(e){toast(e.message,1)}
+  };
+  $('#t').focus();
+}
+
+async function hist(p){
+  try{
+    const v=await api('versions',{id:p.id});
+    $('#main').innerHTML=`<div class="crumbs"><a href="#p/${p.id}">← Zurück zur Seite</a></div><h1 class="t">Verlauf: ${esc(p.title)}</h1>`+
+     v.map((x,i)=>`<details><summary>Version ${x.version}, ${fdate(x.savedAt)}, ${esc(x.author)}</summary>
+      <div class="doc">${md(x.content)}</div><p><button data-r="${i}">Diese Version wiederherstellen</button></p></details>`).join('');
+    document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const x=v[b.dataset.r];edit({...p,title:x.title,content:x.content})});
+  }catch(e){toast(e.message,1)}
+}
+
+$('#space').onchange=e=>{space=e.target.value;ls('space',space);side()};
+$('#new').onclick=()=>edit({id:'',space,parentId:cur?cur.id:'',title:'',content:''});
+$('#q').onkeydown=e=>{if(e.key==='Enter')location.hash='#s/'+encodeURIComponent(e.target.value)};
+$('#menu').onclick=()=>$('#side').classList.toggle('open');
+$('#cfg').onclick=()=>{$('#u').value=ls('url');$('#k').value=ls('token');$('#n').value=ls('name');$('#dlg').showModal()};
+$('#ok').onclick=()=>{ls('url',$('#u').value.trim());ls('token',$('#k').value);ls('name',$('#n').value.trim());setTimeout(load,0)};
+window.onhashchange=route;
+if(ls('url'))load();else{route();$('#dlg').showModal()}
+</script>
+</body>
+</html>
